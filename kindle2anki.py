@@ -252,10 +252,10 @@ if __name__ == '__main__':
         else:
             desc = ''
             if not args.no_ask:
-                print(Style.BRIGHT + "Enter card back:" + Style.RESET_ALL +
+                print(Style.BRIGHT + "Enter card pinyin:" + Style.RESET_ALL +
                       Style.DIM + '[q/s]' + Style.RESET_ALL)
-                desc = input()
-                if desc == 'q':
+                pinyin = input()
+                if pinyin == 'q':
                     if prev_timestamp != 0:
                         update_last_timestamp(prev_timestamp)
 
@@ -268,10 +268,30 @@ if __name__ == '__main__':
 
                     sys.exit(0)
 
-                if desc == 's':
+                if pinyin == 's':
                     print(Style.DIM + "===============================================================================" + Style.RESET_ALL)
                     prev_timestamp = timestamp
                     continue
+                else:
+                    print(Style.BRIGHT + "Enter card back:" + Style.RESET_ALL +
+                        Style.DIM + '[q/s]' + Style.RESET_ALL)
+                    desc = input()
+                    if desc == 'q':
+                        if prev_timestamp != 0:
+                            update_last_timestamp(prev_timestamp)
+
+                        if args.out:
+                            print(
+                                '[100%]\tWrite to file {}...'.format(args.out),
+                                end='',
+                                flush=True)
+                            write_to_csv(args.out, data)
+
+                        sys.exit(0)
+
+                    if desc == 's':
+                        print(Style.DIM + "===============================================================================" + Style.RESET_ALL)
+                        prev_timestamp = timestamp
 
         if not context:
             context = ''
@@ -281,16 +301,10 @@ if __name__ == '__main__':
         context = highlight_word_in_context(word, context)
 
         if args.out:
-            if lingualeo:
-                data.append((word, transcription, '[sound:{}]'.format(sound), tr,
-                            img, highlight_word_in_context(word, context)))
-            else:
-                data.append((word, desc + "<br /><br />" +
-                             highlight_word_in_context(word, context)))
+            data.append((word, pinyin, desc, highlight_word_in_context(word, context)))
         else:
             try:
-                card.create(word, desc + "<br /><br />" +
-                        highlight_word_in_context(word, context))
+                card.create(word, pinyin, desc, highlight_word_in_context(word, context))
             except sqlite3.OperationalError as e:
                 print(Fore.RED + "Error: " + Style.RESET_ALL + "Is Anki open? Database is locked.")
                 if prev_timestamp != 0:
